@@ -1,0 +1,991 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define   MAX_LEN       15   //字符串长度上限
+#define   STU_NUM       30   //学生人数上限
+#define   COURSE_NUM    6    //考试科数上限
+#define   NAME_NUM      45   //名字个数
+
+typedef struct Information
+{
+    int   num;                  //学号
+    char  name[MAX_LEN];        //姓名
+    int   score[COURSE_NUM];    //各科成绩
+    int   sum;                  //总分
+    struct Information *next;   //指向下一结构体
+}STU;
+
+int   Menu (void);                  //创建菜单
+void  Hint(void);                   //返回菜单提示
+void  Calcourse(STU *head);         //计算并输出各科总分平均分
+void  Calstudent(STU *head);        //计算并输出每个学生的总分和平均分
+void  Printlist(STU *head);         //打印链表
+void  Printstruct(STU *found);      //打印结构体
+void  WritetoFile(STU *head);       //把数据写入文件
+void  Firstname(STU *head);         //新增功能：统计不同姓氏的平均成绩
+void  Analysis(STU *head);          //输出不同分数段所展人数
+void  Fuzzysearch(STU *head);       //输入姓氏模糊搜索
+void  Freememory(STU *head);        //释放内存
+void  Changescore(STU *head);       //修改成绩数据
+STU  *Searchnum(STU *head);         //输入学号查询
+STU  *Searchname(STU *head);        //输入姓名查询
+STU  *ReadFile(void);               //从文件中读出每个学生的纪录信息并显示
+STU  *Sortscore_de(STU *head);      //按成绩降序排序并输出成绩
+STU  *Sortscore_as(STU *head);      //按成绩升序排序并输出成绩
+STU  *Sortname(STU *head);          //按字典序排序并输出成绩
+STU  *Sortnumber(STU *head);        //按序号排序并输出成绩
+STU  *Addscore(STU *head);          //增加成绩数据
+STU  *Deletescore(STU *head);       //删除数据
+STU  *Randomname(void);             //随机生成学生数据
+STU  *Input(void);                  //输入学生成绩
+void  Mystrcpy (char a[], char b[]);//解决汉字无法使用strcpy函数的问题
+
+int main(void)
+{
+    STU *head = NULL;
+    while (1){
+        system("cls");
+        int choice = Menu();
+        switch (choice)
+        {
+            case 1:
+                printf("\n\t\t\t1.Read from file\n\t\t\t2.Write to file\n\t\t\t");
+                scanf("%d",&choice);
+                switch (choice)
+                {
+                    case 1:
+                        head = ReadFile();
+                        break;
+                    case 2:
+                        WritetoFile(head);
+                        break;
+                    default:
+                        printf("\n\t\t\tWrong Input");
+                        break;
+                }
+                break;
+            case 2:
+                printf("\n\t\t\t1.Course\n\t\t\t2.Student\n\t\t\t");
+                scanf("%d",&choice);
+                switch (choice)
+                {
+                    case 1:
+                        Calcourse(head);
+                        break;
+                    case 2:
+                        Calstudent(head);
+                        break;
+                    default:
+                        printf("\n\t\t\tWrong Input");
+                        break;
+                }
+                break;
+            case 3:
+                printf("\n\t\t\t1.Sort by score\n\t\t\t2.Sort by name\n\t\t\t3.Sort by number\n\t\t\t");
+                scanf("%d",&choice);
+                switch (choice)
+                {
+                    case 1:
+                        printf("\n\t\t\t1.decrease\n\t\t\t2.ascrease\n\t\t\t");
+                        scanf("%d",&choice);
+                        switch (choice)
+                        {
+                            case 1:
+                                head = Sortscore_de(head);
+                                break;
+                            case 2:
+                                head = Sortscore_as(head);
+                                break;
+                            default:
+                                printf("\n\t\t\tWrong Input");
+                                break;
+                        }
+                        break;
+                    case 2:
+                        head = Sortname(head);
+                        break;
+                    case 3:
+                        head = Sortnumber(head);
+                        break;
+                    default:
+                        printf("\n\t\t\tWrong Input");
+                        break;
+                }
+                break;
+            case 4:
+                printf("\n\t\t\t1.Add record\n\t\t\t2.Delete record\n\t\t\t3.Change record\n\t\t\t");
+                scanf("%d",&choice);
+                switch (choice)
+                {
+                    case 1:
+                        head = Addscore(head);
+                        break;
+                    case 2:
+                        head = Deletescore(head);
+                        break;
+                    case 3:
+                        Changescore(head);
+                        break;
+                    default:
+                        printf("\n\t\t\tWrong Input");
+                        break;
+                }
+                break;
+            case 5:
+                printf("\n\t\t\t1.Search by number\n\t\t\t2.Search by name\n\t\t\t3.Fuzzy search\n\t\t\t");
+                scanf("%d",&choice);
+                switch (choice)
+                {
+                    case 1:
+                        Printstruct(Searchnum(head));
+                        break;
+                    case 2:
+                        Printstruct(Searchname(head));
+                        break;
+                    case 3:
+                        Fuzzysearch(head);
+                        break;
+                    default:
+                        printf("\n\t\t\tWrong Input");
+                        break;
+                }
+                break;
+            case 6:
+                Analysis(head);
+                break;
+            case 7:
+                Printlist(head);
+                break;
+            case 8:
+                head = Randomname();
+                break;
+            case 0:
+                Freememory(head);
+                return 0;
+                break;
+            default:
+                break;
+        }
+        Hint();
+    }
+}
+
+//函数功能：打印菜单
+//函数返回值：用户选项
+int Menu(void)
+{
+    printf("\n\n");
+    printf("\t\t\t                               学生成绩管理系统V7.0\n\n");
+    printf("\t\t\t******************************************************************************\n");
+    printf("\t\t\t*                        Management of Students' scores                      *\n");
+    printf("\t\t\t*                     1.  File                                               *\n");
+    printf("\t\t\t*                     2.  Calculate total and average score                  *\n");
+    printf("\t\t\t*                     3.  Sort                                               *\n");
+    printf("\t\t\t*                     4.  Basic operation                                    *\n");
+    printf("\t\t\t*                     5.  Search                                             *\n");
+    printf("\t\t\t*                     6.  Statistic analysis                                 *\n");
+    printf("\t\t\t*                     7.  List record                                        *\n");
+    printf("\t\t\t*                     8.  Random generate record                             *\n");
+    printf("\t\t\t*                     0.  Exit                                               *\n");
+    printf("\t\t\t******************************************************************************\n");
+    printf("\n");
+    printf("\t\t\tPlease Input your choice:");
+
+    /*增强程序健壮性 判断用户输入是否合法*/
+    int i = -1;
+    int flag = 0;
+    do
+    {
+        flag = scanf("%d", &i);
+        if(!flag || i > 8 || i < -2)
+        {
+            printf("\n\t\t\tWrong input,please input again:");
+            scanf("%*[^\n]%*c");    /*清空缓存区*/
+            flag = 0;
+        }
+    }while (!flag);
+    return i;                       /*返回对应选项*/
+
+}
+
+//函数功能：读取文件信息储存至链表内
+//函数返回值：链表头指针
+STU *ReadFile(void)
+{
+    FILE *fp;
+    int i;
+    STU *head = NULL;
+    STU *p1 = NULL;
+    STU *p2 = NULL;
+    int flag = 0;
+    if ((fp = fopen("/users/ucla/test.txt", "r")) == NULL)
+    {
+        printf("\t\t\tFail to open the file\n");
+        return NULL;    /*判断打开文件是否成功*/
+    }
+    while (!feof(fp))   /*判断是否读取至文件末尾*/
+    {
+        p1 = (STU *)malloc(sizeof(STU));
+        if(p1 == NULL)  /*增强程序健壮性*/
+        {
+            printf("内存不足，请重试");
+            head = NULL;
+            break;
+        }
+        else
+        {
+            p1->next = NULL;
+            if (!flag)
+            {
+                head = p2 = p1;
+                flag = 1;   /*判断是否是头指针*/
+            }
+            else
+            {
+                p2->next = p1;
+            }
+            p2 = p1;
+            fscanf(fp, "%d", &p1->num);
+            fscanf(fp, "%s", p1->name);
+            for(i = 0; i < COURSE_NUM; i++)
+            {
+                fscanf(fp, "%d", &p1->score[i]);
+            }
+            fscanf(fp, "%d", &p1->sum);
+        }
+    }
+    p1 = head;
+    while (p1->next->next!=NULL)
+    {
+        p1 = p1->next;   /*由于feof函数先读取，再判断，所以会多读入一行数据*/
+    }                    /*把指针移至链表末尾，清除多余数据*/
+    p1->next = NULL;
+    fclose(fp);
+    return head;
+}
+
+//函数功能：打印链表中学号姓名成绩总分
+//函数参数：链表头指针
+void Printlist(STU *head)
+{
+    STU *p;
+    int i;
+    p = head;
+    if (head != NULL)
+    {
+        printf("\t\t\t******************************************************************************\n");
+        do
+        {
+            printf("\t\t\t%02d\t%7s\t", p->num, p->name);
+            for (i = 0; i < COURSE_NUM; i++)
+            {
+                printf("%d\t", p->score[i]);
+            }
+            printf("%d\n", p->sum);
+            p = p->next;
+        } while (p != NULL);
+        printf("\t\t\t******************************************************************************\n");
+    }
+    else
+    {
+        printf("\n\t\t\t请先输入信息或选择文件\n");
+    }
+}
+
+//函数功能：计算并输出每个学生的平均分和总分
+//函数参数：链表头指针
+void  Calstudent(STU *head)
+{
+    STU *p;
+    int i;
+    p = head;
+    if (head != NULL)
+    {
+        printf("\t\t\t******************************************************************************\n");
+        do
+        {
+            printf("\t\t\t%d\t%s\t", p->num, p->name);
+            for (i = 0; i < COURSE_NUM; i++)
+            {
+                printf("%d\t", p->score[i]);
+            }
+            printf("%d\t%d\t\n", p->sum, p->sum / COURSE_NUM);
+            p = p->next;
+        } while (p != NULL);
+        printf("\t\t\t******************************************************************************\n");
+    }
+    else
+    {
+        printf("\n\t\t\t请先输入信息或选择文件\n");
+    }
+}
+
+//函数功能：计算并输出每门学科的平均分和总分
+//函数参数：链表头指针
+void  Calcourse(STU *head)
+{
+    STU *p;
+    p = head;
+    int sum[COURSE_NUM];
+    memset(sum, 0, COURSE_NUM * sizeof(int));
+    int cnt = 0;
+    int i;
+    if (head != NULL)
+    {
+        printf("\n\n\n");
+        printf("\t\t\t******************************************************************************\n");
+        do {
+            for (i = 0; i < COURSE_NUM; i++)
+            {
+                sum[i] += p->score[i];
+            }
+            p = p->next;
+            cnt++;
+        }while(p != NULL);
+    }
+    else
+    {
+        printf("\n\t\t\t请先输入数据或打开文件\n");
+        return;
+    }
+    for (i = 0; i < COURSE_NUM; i++) {
+        printf("\t\t\t\t\t\tSum = %d\tAverage = %d\n", sum[i] ,sum[i] / cnt);
+    }
+    printf("\t\t\t******************************************************************************\n");
+}
+
+//函数功能：按成绩降序排列
+//函数参数：链表头指针
+//函数返回值：排序后链表头指针
+STU *Sortscore_de(STU *head)
+{
+    if (head == NULL)
+    {
+        return NULL;
+    }
+    STU *p1 = head;
+    STU *p2, *p;
+    STU *temp = (STU *)malloc(sizeof(STU));
+    int cnt = 0;
+    int i;
+    if(temp == NULL)              /*增强程序健壮性*/
+    {
+        printf("内存不足，请重试");
+        return NULL;
+    }
+    temp->next = head;      /*定义一个临时指针并连在头指针前，方便比较*/
+    while (p1 != NULL){
+        cnt ++;
+        p1 = p1->next;
+    }
+    for (i = 0; i < cnt; i++)
+    {
+        for (p2 = temp; p2->next->next != NULL; p2 = p2->next)
+        {
+            if (p2->next->sum > p2->next->next->sum)
+            {
+                p = p2->next->next;
+                p2->next->next = p2->next->next->next;
+                p->next = p2->next;  /*将相邻的两个链表的链节重新连接*/
+                p2->next = p;
+            }
+        }
+    }
+    head = temp->next;
+    free(temp);
+    return head;
+}
+
+//函数功能：按成绩升序排列
+//函数参数：链表头指针
+//函数返回值：排序后链表头指针
+STU *Sortscore_as(STU *head)
+{
+    if (head == NULL)
+    {
+        return NULL;
+    }
+    STU *p1 = head;
+    STU *p2, *p;
+    int cnt = 0;
+    int i;
+    STU *temp = (STU *)malloc(sizeof(STU));
+    if(temp == NULL)              /*增强程序健壮性*/
+    {
+        printf("\n\t\t\t内存不足，请重试\n");
+        return NULL;
+    }
+    while (p1 != NULL){
+        cnt ++;
+        p1 = p1->next;
+    }
+    temp->next = head;      /*定义一个临时指针并连在头指针前，方便比较*/
+    for (i = 0; i < cnt; i++)
+    {
+        for (p2 = temp; p2->next->next != NULL; p2 = p2->next)
+        {
+            if (p2->next->sum < p2->next->next->sum)
+            {
+                p = p2->next->next;
+                p2->next->next = p2->next->next->next;
+                p->next = p2->next;
+                p2->next = p;       /*将相邻的两个链表的链节重新连接*/
+            }
+        }
+    }
+    head = temp->next;
+    free(temp);
+    return head;
+}
+
+//函数功能：按字典序排列
+//函数参数：链表头指针
+//函数返回值：排序后链表头指针
+STU *Sortname(STU *head)
+{
+    if (head == NULL)
+    {
+        return NULL;
+    }
+    STU *p1 = head;
+    STU *p2, *p;
+    int i;
+    int cnt = 0;
+    STU *temp = (STU *)malloc(sizeof(STU));
+    if(temp == NULL)              /*增强程序健壮性*/
+    {
+        printf("内存不足，请重试");
+        head = NULL;
+    }
+    while (p1 != NULL){
+        cnt ++;
+        p1 = p1->next;
+    }
+    temp->next = head;      /*定义一个临时指针并连在头指针前，方便比较*/
+    for (i = 0; i < cnt; i++)
+    {
+        for (p2 = temp; p2->next->next != NULL; p2 = p2->next)
+        {
+            if (strcmp(p2->next->name, p2->next->next->name) > 0)
+            {
+                p = p2->next->next;
+                p2->next->next = p2->next->next->next;
+                p->next = p2->next;
+                p2->next = p;        /*将相邻的两个链表的链节重新连接*/
+            }
+        }
+    }
+    head = temp->next;
+    free(temp);
+    return head;
+}
+
+//函数功能：按学号排列
+//函数参数：链表头指针
+//函数返回值：排序后链表头指针
+STU  *Sortnumber(STU *head)
+{
+    if (head == NULL)
+    {
+        return NULL;
+    }
+    STU *p1 = head;
+    STU *p2, *p;
+    int cnt = 0;
+    int i;
+    STU *temp = (STU *)malloc(sizeof(STU));
+    if(temp == NULL)              /*增强程序健壮性*/
+    {
+        printf("内存不足，请重试");
+        return NULL;
+    }
+    while (p1 != NULL){
+        cnt ++;
+        p1 = p1->next;
+    }
+    temp->next = head;      /*定义一个临时指针并连在头指针前，方便比较*/
+    for (i = 0; i < cnt; i++)
+    {
+        for (p2 = temp; p2->next->next != NULL; p2 = p2->next)
+        {
+            if (p2->next->num > p2->next->next->num)
+            {
+                p = p2->next->next;
+                p2->next->next = p2->next->next->next;
+                p->next = p2->next;
+                p2->next = p;       /*将相邻的两个链表的链节重新连接*/
+            }
+        }
+    }
+    head = temp->next;
+
+    free(temp);
+    return head;
+}
+
+//函数功能：提示用户按回车键返回菜单
+void Hint(void)
+{
+    printf("\n\t\t\t按回车键返回菜单\n\t\t\t");
+    getchar();
+    getchar();
+}
+
+//函数功能：打印一个结构体
+//函数参数：指向要输出的结构体上一个结构体的指针
+void  Printstruct(STU *found)
+{
+    int i;
+    if (found == NULL)
+    {
+        printf("\n\t\t\t查询失败\n");
+    }
+    else
+    {
+        printf("\n\t\t\t学号：%d\t姓名：%s\t", found->next->num, found->next->name);
+        for (i = 0; i < COURSE_NUM; i++){
+            printf("%d\t", found->next->score[i]);
+        }
+        printf("总分：%d\n", found->next->sum);
+    }
+}
+
+//函数功能：按学号搜索
+//函数参数：链表头指针
+//函数返回值：指向找到的的结构体上一个结构体的指针
+STU *Searchnum(STU *head)
+{
+    if (head == NULL)
+    {
+        return NULL;
+    }
+    printf("\n\t\t\t请输入学号:");
+    int tofind;
+    scanf("%d",&tofind);
+    STU *p;
+    int flag = 0;
+    STU *temp = (STU *)malloc(sizeof(STU));
+    if(temp == NULL)              /*增强程序健壮性*/
+    {
+        printf("内存不足，请重试");
+        return NULL;
+    }
+    temp->next = head;
+    for (p = temp; p->next != NULL; p = p->next)
+    {
+        if (p->next->num == tofind)
+        {
+            flag = 1;
+            break;
+        }
+    }
+    if (!flag)
+    {
+        p = NULL;
+    }
+    return p;
+}
+
+//函数功能：按姓名搜索
+//函数参数：链表头指针
+//函数返回值：指向找到的的结构体上一个结构体的指针
+STU *Searchname(STU *head)
+{
+    printf("\n\n\t\t\t请输入你要查询的姓名:");
+    char tofind[MAX_LEN];
+    scanf("%s", tofind);
+    int flag = 0;
+    STU *temp = (STU *)malloc(sizeof(STU));
+    STU *p;
+    if (head == NULL || temp == NULL)
+    {
+        return NULL;
+    }
+    temp->next = head;
+    for (p = temp; p->next != NULL; p = p->next)
+    {
+        if (strcmp(tofind, p->next->name)==0)
+        {
+            flag = 1;
+            break;
+        }
+    }
+    if (!flag)
+    {
+        p = NULL;
+    }
+    return p;
+}
+
+//函数功能：把信息储存到文件中
+//函数参数：链表头指针
+void  WritetoFile(STU *head)
+{
+    STU *p = NULL;
+    FILE *fp;
+    int i;
+    if (head == NULL)
+    {
+        printf("\n\t\t\tFailed\n");
+        return;
+    }
+    if ((fp = fopen("/users/ucla/test.txt", "w")) == NULL)
+    {
+        printf("\n\n\t\t\tFailed to the file\n");
+        return;
+    }
+    else
+    {
+        for (p = head; p != NULL; p = p->next)
+        {
+            fprintf(fp, "%d\t%s", p->num, p->name);
+            for (i = 0; i < COURSE_NUM; i++)
+            {
+                fprintf(fp, "\t%d", p->score[i]);
+            }
+            fprintf(fp, "\t%d\n", p->sum);
+        }
+        printf("\n\n\t\t\tFinish\n");
+    }
+    fclose(fp);
+}
+
+//函数功能：统计并输出不同成绩段内人数
+//函数参数：链表头指针
+void Analysis(STU *head)
+{
+    if (head == NULL)
+    {
+        printf("\n\t\t\t请先输入信息或选择文件\n");
+        return;
+    }
+    int a[5];
+    STU *p = NULL;
+    int i, j;
+    char remark[5][10] = { "不及格","较差","中等","良好","优秀",};
+    printf("\n");
+    printf("\t\t\t******************************************************************************\n");
+    for (i = 0; i < COURSE_NUM; i++)
+    {
+        memset(a, 0, sizeof(int)*5);
+        for (p = head; p != NULL; p = p->next)
+        {
+            if (p->score[i] < 60)
+            {
+                a[0]++;
+            }
+            else if (p->score[i] < 70)
+            {
+                a[1]++;
+            }
+            else if (p->score[i] < 80)
+            {
+                a[2]++;
+            }
+            else if (p->score[i] < 90)
+            {
+                a[3]++;
+            }
+            else
+            {
+                a[4]++;
+            }
+        }
+        printf("\t\t\tSubject %d：\n\t\t\t", i+1);
+        for (j = 0; j < 5; j++)
+        {
+            printf("%s人数：%d\t", remark[j], a[j]);
+        }
+        printf("\n");
+        printf("\t\t\t******************************************************************************\n");
+    }
+}
+
+//函数功能：按姓氏模糊搜索输出所有同姓氏学生的信息
+//函数参数：链表头指针
+void  Fuzzysearch(STU *head)    /*根据姓氏模糊搜索*/
+{
+    STU *temp = (STU *)malloc(sizeof(STU));
+    if(temp == NULL)            /*增强程序健壮性*/
+    {
+        printf("内存不足，请重试");
+        return;
+    }
+    int cnt;
+    char firstname[4];
+    printf("\n\t\t\t请输入你要查询的姓氏\n\t\t\t");
+    scanf("%s", firstname);
+    for (temp->next = head; temp->next != NULL; temp = temp->next)
+    {
+        cnt = 0;
+        while (temp->next->name[cnt] == firstname[cnt] && cnt <= 3)
+        {
+            cnt ++;
+        }
+        if (cnt >= 3)
+        {
+            Printstruct(temp);
+        }
+    }
+    free(temp);
+}
+
+//函数功能：释放内存
+//函数参数：链表头指针
+void  Freememory(STU *head)   /*释放内存*/
+{
+    STU *temp;
+    while (head != NULL)
+    {
+        temp = head;
+        free(temp);
+        head = head->next;
+    }
+}
+
+//函数功能：增加数据
+//函数参数：链表头指针
+//函数返回值：链表头指针
+STU  *Addscore(STU *head)    /*增加成绩数据*/
+{
+    STU *p1 = NULL;
+    STU *p2 = head;
+    int i;
+    int flag = 0;            /*头指针标记*/
+    if (head == NULL)
+    {
+        head = Input();
+        return head;
+    }
+    while (p2 != NULL && p2->next != NULL)
+    {
+        p2 = p2->next;
+    }
+    for(;;)
+    {
+        printf("\n\t\t\t请输入信息，输入-1停止输入\n");
+        p1 = (STU *)malloc(sizeof(STU));
+        if(p1 == NULL || p2 == NULL)              /*增强程序健壮性*/
+        {
+            printf("内存不足，请重试");
+            break;
+        }
+        p1->next = NULL;
+        if (!flag)
+        {
+            p2->next = p1;
+            flag = 1;           /*判断是否为头指针*/
+        }
+        else
+        {
+            p2->next = p1;      /*指向下一结构体，实现链表的链接*/
+        }
+        printf("\t\t\t");
+        scanf("%d", &p1->num);
+        if(p1->num == -1)       /*判断用户输入是否结束*/
+        {
+            p2->next = NULL;
+            p1 = NULL;
+            free(p1);
+            break;
+        }
+        scanf("%s", p1->name);
+        for(i = 0; i < COURSE_NUM; i++)
+        {
+            scanf("%d", &p1->score[i]);
+        }
+        scanf("%d", &p1->sum);
+        p2 = p1;
+    }
+    if (head != NULL)
+    {
+        printf("\n\n\t\t\tInput Finish\n");
+    }
+    return head;
+}
+
+//函数功能：删除数据
+//函数参数：链表头指针
+//函数返回值：链表头指针
+STU *Deletescore(STU *head)     /*删除数据*/
+{
+    STU *todelete = Searchnum(head);
+    if (todelete == NULL)
+    {
+        printf("\n\t\t\t请先打开文件或输入数据\n");
+        return NULL;
+    }
+    if (head == todelete->next)
+    {
+        head = head->next; /*如果删除第一条数据，就把头指针向后移动一位*/
+    }
+    else
+    {
+        todelete->next = todelete->next->next;
+    }
+    return head;
+}
+
+//函数功能：修改数据
+//函数参数：链表头指针
+void Changescore(STU *head)    /*修改数据*/
+{
+    if (head == NULL)
+    {
+        printf("\n\t\t\t查询失败\n");
+        return;
+    }
+    STU *p = Searchnum(head)->next;
+    int i;
+    printf("\t\t\t请输入修改后的信息：\n\t\t\t");
+    scanf("%d", &p->num);
+    scanf("%s", p->name);
+    for(i = 0; i < COURSE_NUM; i++)
+    {
+        scanf("%d", &p->score[i]);
+    }
+    scanf("%d", &p->sum);
+}
+
+//函数功能：随机生成数据
+//函数返回值：链表头指针
+STU *Randomname()    /*随机生成学生数据*/
+{
+    char firstname[NAME_NUM][MAX_LEN];
+    char lastname[NAME_NUM][MAX_LEN];
+    STU *head = NULL;
+    STU *p2 = head;
+    STU *p1 = NULL;
+    int sum;
+    printf("\n\t\t\t请输入生成的数据个数：");
+    int k, i, j;
+    scanf("%d",&k);
+    char storage[k][MAX_LEN];
+    FILE *fp;
+    if ((fp = fopen("/users/ucla/firstname.txt", "r")) == NULL)
+    {
+        printf("\t\t\tFail to open the file\n");
+        return NULL;
+    }
+    for (i = 0 ; i < NAME_NUM; i++)  /*储存姓氏*/
+    {
+        fscanf(fp, "%10s", firstname[i]);
+    }
+    fclose(fp);
+    if ((fp = fopen("/users/ucla/lastname.txt", "r")) == NULL)
+    {
+        printf("\t\t\tFail to open the file\n");
+        return NULL;
+    }
+    for (i = 0 ; i < NAME_NUM; i++)  /*储存名字*/
+    {
+        fscanf(fp, "%10s", lastname[i]);
+    }
+    fclose(fp);
+    for (i = 0; i < k; i++)
+    {
+        p1 = (STU *)malloc(sizeof(STU));
+        if (p1 == NULL)              /*增强程序健壮性*/
+        {
+            printf("内存不足，请重试");
+            return NULL;
+        }
+        p1->next = NULL;
+        if (head == NULL)
+        {
+            head = p2 = p1;
+        }
+        else
+        {
+            p2->next = p1;
+        }
+        p1->num = rand() % 100;
+        if (rand() % 4 == 0)    /*生成两个字的名字*/
+        {
+            strcpy(storage[i], firstname[rand() % NAME_NUM]);
+            Mystrcpy(storage[i], lastname[rand() % NAME_NUM]);
+        }
+        else                    /*生成三个字的名字*/
+        {
+            strcpy(storage[i], firstname[rand() % NAME_NUM]);
+            Mystrcpy(storage[i], lastname[rand() % NAME_NUM]);
+            Mystrcpy(storage[i], lastname[rand() % NAME_NUM]);
+        }
+        strcpy(p1->name, storage[i]);
+        sum = 0;
+        for (j = 0; j < 6; j++)
+        {
+            p1->score[j] = rand() % 100;
+            sum += p1->score[j];
+        }
+        p1->sum = sum;
+        p2 = p1;
+    }
+    return head;
+}
+
+//函数功能：链接字符串
+//函数参数：储存姓和名的一位字符数组
+void Mystrcpy (char firstname[], char lastname[])/*解决汉字strcpy函数无效的问题*/
+{
+    int i;
+    int j = -1;
+    while(firstname[++j] != '\0');
+    for (i = 0; i < 4; i++, j++)
+    {
+        firstname[j] = lastname[i];
+    }
+}
+
+//函数功能：读取用户录入的学生信息
+//函数返回值：链表的头指针
+STU *Input(void)
+{
+    STU *p1 = NULL;
+    STU *p2 = NULL;
+    STU *head = NULL;
+    int i;
+    int flag = 0;                   /*头指针标记*/
+    for(;;)
+    {
+        printf("\t\t\t请输入信息，输入-1停止输入\n");
+        p1 = (STU *)malloc(sizeof(STU));
+        if(p1 == NULL)              /*增强程序健壮性*/
+        {
+            printf("内存不足，请重试");
+            break;
+        }
+        p1->next = NULL;
+        if (!flag)
+        {
+            head = p2 = p1;
+            flag = 1;           /*判断是否为头指针*/
+        }
+        else
+        {
+            p2->next = p1;      /*指向下一结构体，实现链表的链接*/
+        }
+        printf("\t\t\t");
+        scanf("%d", &p1->num);
+        if(p1->num == -1)       /*判断用户输入是否结束*/
+        {
+            p2->next = p1 = NULL;
+            free(p1);
+            break;
+        }
+        scanf("%s", p1->name);
+        for(i = 0; i < COURSE_NUM; i++)
+        {
+            scanf("%d", &p1->score[i]);
+        }
+        scanf("%d", &p1->sum);
+        p2 = p1;
+    }
+    if (head != NULL)
+    {
+        printf("\n\n\t\t\tInput Finish\n");
+    }
+    return head;
+}
